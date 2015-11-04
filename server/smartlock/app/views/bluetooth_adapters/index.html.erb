@@ -14,6 +14,9 @@
     <% @bluetooth_adapters.each do |bluetooth_adapter| %>
       <tr>
         <td><%= bluetooth_adapter.token %></td>
+        <td>
+
+        </td>
         <td><%= link_to 'Show', bluetooth_adapter %></td>
         <td><%= link_to 'Edit', edit_bluetooth_adapter_path(bluetooth_adapter) %></td>
         <td><%= link_to 'Destroy', bluetooth_adapter, method: :delete, data: { confirm: 'Are you sure?' } %></td>

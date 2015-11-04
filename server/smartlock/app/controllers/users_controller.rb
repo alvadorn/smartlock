@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-  before_action :set_user, only: [:show, :edit, :update, :destroy]
+  before_action :set_user, only: [:show, :edit, :update, :destroy, :deactivate, :activate]
   # GET /users
   # GET /users.json
   def index
@@ -60,6 +60,27 @@ class UsersController < ApplicationController
     end
   end
 
+  # PUT  /users/1/deactivate
+  def deactivate
+    respond_to do |format|
+      if @user.update(activated: false)
+        format.html { redirect_to users_url, notice: 'Usuário desativado com sucesso.' }
+      else
+        format.html { reditect_to users_url, notice: 'Usuário não pode ser desativado' }
+      end
+    end
+  end
+
+  def activate
+    respond_to do |format|
+      if @user.update(activated: true)
+        format.html { redirect_to users_url, notice: 'Usuário ativado com sucesso.' }
+      else
+        format.html { reditect_to users_url, notice: 'Usuário não pode ser ativado.' }
+      end
+    end
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_user
@@ -68,7 +89,7 @@ class UsersController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def user_params
-      params.require(:user).permit(:nome)
+      params.require(:user).permit(:name, :surname, :password,:email, :activated, :account)
     end
 
 end

@@ -32,12 +32,14 @@ ActiveRecord::Schema.define(version: 20151104142924) do
   end
 
   create_table "users", force: :cascade do |t|
-    t.string   "name"
-    t.string   "surname"
-    t.string   "account"
-    t.string   "password"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
+    t.string   "name",                      null: false
+    t.string   "surname",                   null: false
+    t.string   "account",                   null: false
+    t.string   "password",                  null: false
+    t.string   "email"
+    t.boolean  "activated",  default: true, null: false
+    t.datetime "created_at",                null: false
+    t.datetime "updated_at",                null: false
   end
 
 end

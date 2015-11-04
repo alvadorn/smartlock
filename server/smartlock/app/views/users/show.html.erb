@@ -2,7 +2,43 @@
 
 <p>
   <strong>Nome:</strong>
-  <%= @user.nome %>
+  <%= @user.name %>
+  <% if @user.bluetooth_adapter.count > 0 %>
+  <table>
+    <thead>
+      <tr>
+        <th>
+          Token
+        </th>
+        <th>
+          Ativado
+        </th>
+        <th colspan="3">
+          Detalhes
+        </th>
+      </thead>
+    </tr>
+    <tbody>
+      <tr>
+      <% @user.bluetooth_adapter.each do |adapter| %>
+        <td>
+          <%= adapter.token %>
+        </td>
+        <td>
+          <% if adapter.activated %>
+            Ativado
+          <% else %>
+            Desativado
+          <% end %>
+        </td>
+        <td>
+
+        </td>
+        <% end %>
+      </tr>
+    </tbody>
+  </table>
+  <% end %>
 </p>
 
 <%= link_to 'Edit', edit_user_path(@user) %> |
