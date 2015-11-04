@@ -54,24 +54,33 @@ public:
 		Serial.begin(9600);
 		if (Ethernet.begin((byte* ) mac) == 0) {
 			Serial.println(Ethernet.localIP());
+		} else {
+			Serial.println("Falha no DHCP");
 		}
 	}
 
-	void static sendPostRequest(char *url, char *path, char *content_type, char *data) {
-		char buffer[1024];
-		sprintf(buffer, "POST %s HTTP/1.1", path);
-		web.println(buffer);
-		sprintf(buffer, "Host: %s", url);
-		web.println(buffer);
-		web.println("User-Agent: Arduino");
-		sprintf(buffer, "Content-Type: %s", content_type);
-		web.println(buffer);
-		sprintf(buffer, "Accept: %s", content_type);
-		web.println(buffer);
-		sprintf(buffer, "Content-length: %d", strlen(data));
-		web.println(buffer);
-		web.println("Connection: close");
-		web.println(data);
+	void static sendPostRequest(char *url, int port, char *path, char *content_type, char *data) {
+		if (web.connect(url, port)) {
+			Serial.println("teste");
+			char buffer[1024];
+			sprintf(buffer, "POST %s HTTP/1.1", path);
+			web.println(buffer);
+			web.println("User-Agent: curl/7.38.0");
+			if (port == 80) {
+				sprintf(buffer, "Host: %s", url);
+			} else {
+				sprintf(buffer, "Host: %s:%d", url, port);
+			}
+			web.println(buffer);
+			sprintf(buffer, "Content-Type: %s", content_type);
+			web.println(buffer);
+			sprintf(buffer, "Accept: %s", content_type);
+			web.println(buffer);
+			sprintf(buffer, "Content-Length: %d", strlen(data));
+			web.println(buffer);
+			//web.println("Connection: close");
+			web.println(data);
+		}
 	} 
 
 };
@@ -87,9 +96,9 @@ void setup() {
 }
 
 void loop() {
-	char url[] = "192.168.1.1";
-	char path[] = "/contato";
+	char url[] = "10.10.0.69";
+	char path[] = "/auth";
 	char content[] = "application/json";
-	char data[] = "{ nome: \"testando\" }";
-	WebSocket::sendPostRequest(url, path , content,  data);
+	char data[] = "{ \"account\": \"2012100999\", \"password\": \"pass\", \"bt\": \"false\" }";
+	WebSocket::sendPostRequest(url,3000,path , content,  data);
 }
