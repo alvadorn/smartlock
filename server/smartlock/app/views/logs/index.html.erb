@@ -1,0 +1,25 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Logs</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Dia</th>
+      <th>Hora</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @logs.each do |log| %>
+      <tr>
+        <td><%= log.bluetooth %></td>
+        <td><%= log.status %></td>
+        <td><%= link_to 'Show', log %></td>
+        <td><%= link_to 'Edit', edit_log_path(log) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>

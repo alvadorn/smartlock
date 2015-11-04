@@ -1,0 +1,27 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Listing Bluetooth Adapters</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Token</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @bluetooth_adapters.each do |bluetooth_adapter| %>
+      <tr>
+        <td><%= bluetooth_adapter.token %></td>
+        <td><%= link_to 'Show', bluetooth_adapter %></td>
+        <td><%= link_to 'Edit', edit_bluetooth_adapter_path(bluetooth_adapter) %></td>
+        <td><%= link_to 'Destroy', bluetooth_adapter, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Bluetooth adapter', new_bluetooth_adapter_path %>
