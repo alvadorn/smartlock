@@ -9,6 +9,10 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_pairing_screen" tools:context=".PairingScreen">
 
-    <TextView android:text="Hello World!" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SmartLock login"
+        android:id="@+id/icon"
+        android:layout_alignParentTop="true" />
 </RelativeLayout>
