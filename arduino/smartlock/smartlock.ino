@@ -5,12 +5,14 @@
 #include <EthernetClient.h>
 #include <Keypad.h>
 #include <Servo.h>
+#include <ArduinoJson.h>
 
 
 // Macros
 #define KPAD_ROWS 4
 #define KPAD_COLS 4
 #define SERVO 5
+#define MAX_LEN 16
 
 
 // Constant variables
@@ -39,6 +41,8 @@ IPAddress ip(10, 10, 10, 50);
  *
  */
 LiquidCrystal lcd(53, 51, 49, 47, 45, 43);
+//char lcd_lines[2][30] = { "Digite matricula", "ou senha para entrar" };
+String lcd_lines[2] = { "Digite matricula", "ou senha para entrar" };
 // EthernetClient
 EthernetClient web;
 // Keypad
@@ -50,9 +54,133 @@ Keypad keypad(makeKeymap((byte **)keys), (byte*)rowPins, (byte*)colPins, KPAD_RO
  *  Orange wire: Signal
  */
 Servo servo;
+byte state = 0;
+byte account_len = 0;
+byte password_len = 0;
+char account[MAX_LEN + 1];
+char password[MAX_LEN + 1];
+byte smiley_eye[8] =   {
+    B00000,
+    B00000,
+    B01110,
+    B01110,
+    B01110,
+    B00000,
+    B00000 };
+byte smiley_happy_mouth[2][8] = {
+  { B00000,
+    B00000,
+    B00000,
+    B11000,
+    B01100,
+    B00011,
+    B00000 },
+  { B00000,
+    B00000,
+    B00000,
+    B00011,
+    B00110,
+    B11000,
+    B00000
+  }
+};
 
 
 // Functions definitions
+void createJsonToSend(String& str, char *account, char *password, boolean bluetooth, char *token) {
+  StaticJsonBuffer<400> jsonBuffer;
+  JsonObject& root = jsonBuffer.createObject();
+  root["account"] = account;
+  root["password"] = password;
+  if (bluetooth) {
+    root["bt"] = "true";
+    root["token"] = token;
+  } else {
+    root["bt"] = "false";
+  }
+  root.printTo(str);
+}
+
+inline void refreshLcd() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.write(byte(0));
+  lcd.write(byte(0));
+  lcd.print(lcd_lines[0].c_str());
+  lcd.setCursor(0, 1);
+  lcd.write(byte(1));
+  lcd.write(byte(2));
+  lcd.print(lcd_lines[1].c_str());
+}
+
+bool isReservedKey(char key) {
+  switch(key) {
+    case 'A':
+    case 'B':
+    case 'C':
+    case 'D':
+      return true;
+    case '*':
+      return true;
+    case '#':
+      return true;
+    default:
+      return false;
+  }
+}
+
+void verifyKey(char key) {
+  if (key != NO_KEY) {
+
+    if (state == 0) {
+
+      if (isReservedKey(key)) {
+        state = 1;
+        account_len = password_len = 0;
+        lcd_lines[0] = "Digite a matricula";
+        lcd_lines[1] = "";
+      }
+
+    } else if (state == 1) {
+      if (!isReservedKey(key)) {
+        if (account_len < MAX_LEN) {
+          account[account_len] = key;
+          lcd_lines[1] += "*";
+          account_len++;
+        }
+      } else {
+        state = 2;
+        lcd_lines[0] = "Digite a senha:";
+        lcd_lines[1] = "";
+      }
+
+    } else if (state == 2) {
+
+      if (!isReservedKey(key)) {
+        if (password_len < MAX_LEN) {
+          password[password_len] = key;
+          lcd_lines[1] += "*";
+          password_len++;
+        }
+      } else {
+        state = 3;
+        lcd_lines[0] = "Autenticando...";
+        lcd_lines[1] = "Autenticando...";
+      }
+    }
+
+  }
+}
+
+void keypadListener(KeypadEvent key) {
+  switch(keypad.getState()) {
+    case RELEASED:
+      verifyKey(key);
+      break;
+    default:
+      break;
+  }
+}
 
 // Libs
 class WebSocket {
@@ -95,20 +223,30 @@ public:
 
 };
 
-
-
-
-
-
 void setup() {
-  WebSocket::begin(mac);
+  Serial.begin(9600);
+  lcd.begin(16, 2);
+  lcd.noBlink();
+  lcd.createChar(0, smiley_eye);
+  lcd.createChar(1, smiley_happy_mouth[0]);
+  lcd.createChar(2, smiley_happy_mouth[1]);
+  keypad.setHoldTime(300);
+  //WebSocket::begin(mac);
   //servo.attach(SERVO);
 }
 
 void loop() {
+  refreshLcd();
+  char key = keypad.getKey();
+  verifyKey(key);
+
 	char url[] = "10.10.0.69";
 	char path[] = "/auth";
 	char content[] = "application/json";
-	char data[] = "{ \"account\": \"2012100999\", \"password\": \"pass\", \"bt\": \"false\" }";
-	WebSocket::sendPostRequest(url,8080,path , content,  data);
+  char data[400];
+  String str;
+  createJsonToSend(str, "2012100574", "password", true, "ahudash");
+  Serial.println(str.c_str());
+  delay(1000);
+	//WebSocket::sendPostRequest(url,8080,path , content,  data);
 }
