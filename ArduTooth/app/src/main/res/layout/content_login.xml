@@ -14,22 +14,24 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
-        android:text="Name"
+        android:hint="Login"
         android:ems="10"
         android:id="@+id/editText"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="52dp" />
+        android:layout_marginTop="25dp" />
 
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
-        android:text="Name"
+        android:hint="Password"
         android:ems="10"
-        android:id="@+id/editText3"
+        android:id="@+id/editText2"
         android:layout_below="@+id/editText"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="29dp" />
+        android:layout_marginTop="25dp"
+        android:imeOptions="actionNext"
+        />
 
 </RelativeLayout>
