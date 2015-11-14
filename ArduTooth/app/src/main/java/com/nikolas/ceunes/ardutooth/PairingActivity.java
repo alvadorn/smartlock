@@ -8,13 +8,16 @@ import android.bluetooth.BluetoothSocket;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.ConsoleMessage;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -25,6 +28,7 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Console;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -51,9 +55,8 @@ public class PairingActivity extends AppCompatActivity {
     private EditText loginInput;
     private EditText passwordInput;
 
+    SharedPreferences prefs = null;
 
-    final String PREFS_NAME = "MyPrefsFile";
-    SharedPreferences settings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,16 +73,10 @@ public class PairingActivity extends AppCompatActivity {
 
 
         adapter = BluetoothAdapter.getDefaultAdapter();
-        settings = getSharedPreferences(PREFS_NAME, 0);
+        prefs = getSharedPreferences("com.nikolas.ceunes.ardutooth", MODE_PRIVATE);
+        token = new String();
 
-        /*
-        If application is run for the first time, generate identification token
-         */
-        if (settings.getBoolean("my_first_time", true)) {
-            String date = DateFormat.getDateTimeInstance().format(new Date());
-            md5(date);
-            settings.edit().putBoolean("my_first_time", false).commit();
-        }
+
 
         inputButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,6 +105,9 @@ public class PairingActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 loginInput = input;
                                 passwordInput = pass;
+                                Log.d("Login",loginInput.getText().toString());
+                                Log.d("Password",passwordInput.getText().toString());
+                                Log.d("Token", token);
                             }
                         }
                 );
@@ -118,6 +118,7 @@ public class PairingActivity extends AppCompatActivity {
                             }
                         });
                 alertDialog.show();
+
             }
         });
 
@@ -217,6 +218,16 @@ public class PairingActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (prefs.getBoolean("firstrun", true)) {
+            String date = DateFormat.getDateTimeInstance().format(new Date());
+            md5(date);
+            prefs.edit().putBoolean("firstrun", false).commit();
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
