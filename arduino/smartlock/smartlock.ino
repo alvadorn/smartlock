@@ -6,14 +6,15 @@
 #include <Keypad.h>
 #include <Servo.h>
 #include <ArduinoJson.h>
-
+#include <SoftwareSerial.h>
 
 // Macros
 #define KPAD_ROWS 4
 #define KPAD_COLS 4
 #define SERVO 5
 #define MAX_LEN 16
-
+#define RXBT A8
+#define TXBT A9
 
 // Constant variables
 const byte mac[] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x0A };
@@ -84,6 +85,29 @@ byte smiley_happy_mouth[2][8] = {
     B00000
   }
 };
+byte smiley_sad_mouth[2][8] = {
+  { B00000,
+    B00000,
+    B00000,
+    B00011,
+    B01100,
+    B11000,
+    B00000 },
+  { B00000,
+    B00000,
+    B00000,
+    B11000,
+    B00110,
+    B00011,
+    B00000
+  }
+};
+/*
+ * Bluetooth module HC-05
+ * RX = A8 -> RX arduino to TX HC-05
+ * TX = A9 -> TX arduino to RX HC-05
+ */
+SoftwareSerial bluetooth(RXBT, TXBT);
 
 
 // Functions definitions
@@ -182,6 +206,26 @@ void keypadListener(KeypadEvent key) {
   }
 }
 
+bool verifyBluetooth(String& buffer) {
+  if (bluetooth.available()) {
+    while(bluetooth.available()) {
+      buffer += bluetooth.read();
+    }
+    return true;
+  }
+  return false;
+}
+
+void sendHttpFromBluetooth(String &buffer, void (*encode)(String&, char *, char *, boolean, char *)) {
+  StaticJsonBuffer<400> jsonBuffer;
+  JsonObject& root = jsonBuffer.parseObject(buffer.c_str());
+  const char *account = root["account"];
+  const char *password = root["password"];
+  const char *token  = root["token"];
+  buffer = "";
+  encode(buffer, (char *) account, (char *) password, true, (char *) token);
+}
+
 // Libs
 class WebSocket {
 private:
@@ -230,16 +274,24 @@ void setup() {
   lcd.createChar(0, smiley_eye);
   lcd.createChar(1, smiley_happy_mouth[0]);
   lcd.createChar(2, smiley_happy_mouth[1]);
+  lcd.createChar(3, smiley_sad_mouth[0]);
+  lcd.createChar(4, smiley_sad_mouth[1]);
   keypad.setHoldTime(300);
   //WebSocket::begin(mac);
-  //servo.attach(SERVO);
+  //servo.attach(SERVOs  bluetooth.begin(9600);
 }
 
 void loop() {
   refreshLcd();
   char key = keypad.getKey();
   verifyKey(key);
-
+  if (state == 0) {
+    String buffer = "";
+    bool received = verifyBluetooth(buffer);
+    if (received) {
+      sendHttpFromBluetooth(buffer, createJsonToSend);
+    }
+  }
 	char url[] = "10.10.0.69";
 	char path[] = "/auth";
 	char content[] = "application/json";
