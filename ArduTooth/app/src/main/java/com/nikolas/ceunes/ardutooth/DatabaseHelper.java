@@ -3,19 +3,22 @@ package com.nikolas.ceunes.ardutooth;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.io.File;
+
 public class DatabaseHelper extends SQLiteOpenHelper {
 
+    private static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "database.db";
     public static final String TABLE_NAME = "user";
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_LOGIN = "login";
     public static final String COLUMN_PASS = "password";
     public static final String COLUMN_TOKEN = "token";
-    private static final int DATABASE_VERSION = 1;
 
     DatabaseHelper (Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -49,6 +52,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         contentValues.put(COLUMN_TOKEN, token);
 
         db.insert(TABLE_NAME, null, contentValues);
+        db.close();
         return true;
     }
 
@@ -56,6 +60,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor res =  db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " +
                 COLUMN_ID + "=?", new String[]{Integer.toString(id)});
+        return res;
+    }
+
+    public Cursor getAllEntries() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res =  db.rawQuery( "SELECT * FROM " + TABLE_NAME, null );
         return res;
     }
 
