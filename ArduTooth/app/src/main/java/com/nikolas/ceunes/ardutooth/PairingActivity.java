@@ -48,6 +48,7 @@ public class PairingActivity extends Activity {
     private EditText loginInput;
     private EditText passwordInput;
     private TextView showToken;
+    private int databaseCheck;
 
     SharedPreferences prefs = null;
     DatabaseHelper database;
@@ -66,16 +67,31 @@ public class PairingActivity extends Activity {
         loginInput = (EditText) findViewById(R.id.editText);
         passwordInput = (EditText) findViewById(R.id.editText2);
         showToken = (TextView) findViewById(R.id.textView);
-
         adapter = BluetoothAdapter.getDefaultAdapter();
         prefs = getSharedPreferences("com.nikolas.ceunes.ardutooth", MODE_PRIVATE);
         token = new String();
         database = new DatabaseHelper(this);
 
+        /*
+        Will show a token in the bottom screen TextView if one exists in the database
+         */
         Cursor c = database.getAllEntries();
-        c.moveToFirst();
-        showToken.setText("\t\t\t\t\t\t YOUR TOKEN" + "\n" + c.getString(c.getColumnIndex("token")));
+        if(c.moveToFirst()) {
+            showToken.setText("\t\t\t\t\t\t YOUR TOKEN" + "\n" + c.getString(c.getColumnIndex("token")));
+            databaseCheck = 1;
+        }
 
+        /*
+        Forces buttons to disappear. They'll be re-enabled when the app
+        successfully connects to the arduino, eliminating the possibility of
+        a crash if the user tries to authenticate with a non-paired device
+         */
+        inputButton.setEnabled(false);
+        instantButton.setEnabled(false);
+
+        /*
+        Input and output stream instantiation for Bluetooth communication
+         */
         inputStream = new InputStream() {
             @Override
             public int read() throws IOException {
@@ -165,8 +181,7 @@ public class PairingActivity extends Activity {
         pairedDevices = adapter.getBondedDevices();
 
         /*
-        Possible names for the pairing arduino : HC-05 or HC-06
-        Setting the pairing password as 1234
+        Possible names for the pairing arduino with the name SmartLock
          */
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice b : pairedDevices) {
@@ -190,6 +205,16 @@ public class PairingActivity extends Activity {
         } catch (IOException e) {
             //e.printStackTrace();
             socket.close();
+        }
+        /*
+        Re-enables sending data buttons. The instant authentication
+        button will only be re-enables if the databases exists, therefore
+        there is content loaded to be sent instantaneously with the
+        mentioned button
+         */
+        inputButton.setEnabled(true);
+        if (databaseCheck == 1) {
+            instantButton.setEnabled(true);
         }
 
     }
