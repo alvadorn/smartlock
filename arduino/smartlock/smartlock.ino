@@ -17,7 +17,7 @@
 #define TXBT A9
 
 // Constant variables
-const byte mac[] = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x0A };
+byte mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xFE, 0x02 };
 const char keys[KPAD_ROWS][KPAD_COLS] = {
   { '1', '2', '3', 'A' },
   { '4', '5', '6', 'B' },
@@ -114,6 +114,7 @@ SoftwareSerial bluetooth(RXBT, TXBT);
 void createJsonToSend(String& str, char *account, char *password, boolean bluetooth, char *token) {
   StaticJsonBuffer<400> jsonBuffer;
   JsonObject& root = jsonBuffer.createObject();
+  //JsonObject& authenticate = root.createNestedObject("authenticate");
   root["account"] = account;
   root["password"] = password;
   if (bluetooth) {
@@ -122,19 +123,28 @@ void createJsonToSend(String& str, char *account, char *password, boolean blueto
   } else {
     root["bt"] = "false";
   }
+  //JsonObject& root = authenticate.createNestedObject("authenticate");
   root.printTo(str);
 }
 
 inline void refreshLcd() {
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.write(byte(0));
-  lcd.write(byte(0));
   lcd.print(lcd_lines[0].c_str());
-  lcd.setCursor(0, 1);
-  lcd.write(byte(1));
-  lcd.write(byte(2));
   lcd.print(lcd_lines[1].c_str());
+  if (state == 4 || state == 5) {
+    lcd.setCursor(13, 0);
+    lcd.write(byte(0));
+    lcd.write(byte(0));
+    lcd.setCursor(13, 1);
+    if (state == 4) {
+      lcd.write(byte(1));
+      lcd.write(byte(2));
+    } else {
+      lcd.write(byte(3));
+      lcd.write(byte(4));
+    }
+  }
 }
 
 bool isReservedKey(char key) {
@@ -188,8 +198,6 @@ void verifyKey(char key) {
         }
       } else {
         state = 3;
-        lcd_lines[0] = "Autenticando...";
-        lcd_lines[1] = "Autenticando...";
       }
     }
 
@@ -226,23 +234,50 @@ void sendHttpFromBluetooth(String &buffer, void (*encode)(String&, char *, char 
   encode(buffer, (char *) account, (char *) password, true, (char *) token);
 }
 
+
+void httpSkipReader(String &buffer) {
+  int index = buffer.indexOf("{");
+  if (index != -1) {
+    buffer.remove(0, index + 1);
+  } else {
+    buffer = "";
+  }
+}
+
+bool authenticated(String &buffer) {
+  httpSkipReader(buffer);
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& root = jsonBuffer.parseObject(buffer.c_str());
+  const char *status = root["authentication"];
+  if (strcmp(status, "authorized")) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+
 // Libs
 class WebSocket {
 private:
 public:
 
-	void static begin(const byte *mac) {
+	void static begin(byte *mac) {
 		Serial.begin(9600);
-		if (Ethernet.begin((byte* ) mac) == 0) {
+		if (Ethernet.begin(mac) == 0) {
 			Serial.println(Ethernet.localIP());
 		} else {
 			Serial.println("Falha no DHCP");
+      Serial.println(Ethernet.localIP());
 		}
    Serial.println("Teste");
 	}
 
-	void static sendPostRequest(char *url, int port, char *path, char *content_type, char *data) {
+
+
+  void static sendPostRequest(char *url, int port, char *path, char *content_type, char *data) {
 		if (web.connect(url, port)) {
+      /*
 			Serial.println("teste");
 			char buffer[1024];
 			sprintf(buffer, "POST %s HTTP/1.1", path);
@@ -261,11 +296,36 @@ public:
 			sprintf(buffer, "Content-Length: %d", strlen(data));
 			web.println(buffer);
 			//web.println("Connection: close");
-			web.println(data);
-		}
+			web.println(data);*/
+      /*String s = "POST " + path;
+      s += "POST ";
+      s += path;
+      s += " HTTP/1.1\r\nUser-Agent: Arduino\r\nHost: ";
+      s += url;
+      s += "\r\nContent-Type: ";
+      s += content_type;
+      /*s += "\r\nAccept: ";
+      s += content_type;
+      s += "\r\nContent-Length: ";
+      s += strlen(s.c_str());
+      s += "\r\nConnection: close\r\n\r\n";(char *)s.c_str()
+      s += data;*/
+
+      char s[1024];
+      sprintf(s, "POST %s HTTP/1.1\r\nUser-Agent: curl/7.38.0\r\nHost: %s\r\nContent-type: %s\r\nContent-Length: %d\r\n\r\n%s", path, url, content_type, strlen(data), data);
+      
+      web.print(s);
+      web.stop();
+      Serial.println(s);
+      Serial.println(data);
+		} else {
+      Serial.println("Not connected");
+    }
 	}
 
 };
+
+
 
 void setup() {
   Serial.begin(9600);
@@ -277,7 +337,7 @@ void setup() {
   lcd.createChar(3, smiley_sad_mouth[0]);
   lcd.createChar(4, smiley_sad_mouth[1]);
   keypad.setHoldTime(300);
-  //WebSocket::begin(mac);
+  WebSocket::begin(mac);
   //servo.attach(SERVOs  bluetooth.begin(9600);
 }
 
@@ -290,15 +350,37 @@ void loop() {
     bool received = verifyBluetooth(buffer);
     if (received) {
       sendHttpFromBluetooth(buffer, createJsonToSend);
+      state = 3;
+      lcd_lines[0] = "Autenticando...";
+      lcd_lines[1] = "Autenticando...";
     }
+  } else if (state == 3) {
+    String received;
+
+    if (authenticated(received)) {
+      state = 4;
+    } else {
+      state = 5;
+    }
+  } else if (state == 4) {
+    lcd_lines[0] = "    Autenticado";
+    lcd_lines[1] = "   com sucesso!";
+  } else if (state == 5) {
+    lcd_lines[0] = "   Falha na";
+    lcd_lines[1] = " autenticação";
+  } else if (state == 6) {
+
+    state = 3;
+  } else if (state == 7) {
+
   }
-	char url[] = "10.10.0.69";
+	char url[] = "10.10.10.100";
 	char path[] = "/auth";
 	char content[] = "application/json";
   char data[400];
   String str;
   createJsonToSend(str, "2012100574", "password", true, "ahudash");
-  Serial.println(str.c_str());
+  //Serial.println(str.c_str());
   delay(1000);
-	//WebSocket::sendPostRequest(url,8080,path , content,  data);
+	WebSocket::sendPostRequest(url,8080,path , content,  (char *)str.c_str());
 }

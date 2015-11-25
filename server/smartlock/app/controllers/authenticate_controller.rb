@@ -2,6 +2,7 @@ class AuthenticateController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def init
+    puts params.inspect
   	account = params[:account]
   	password = params[:password]
   	bt = params[:bt]
