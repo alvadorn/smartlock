@@ -256,6 +256,18 @@ bool authenticated(String &buffer) {
   }
 }
 
+void fixServo() {
+  for (int i = 180; i >= 0; i--) {
+    servo.write(0);
+    delay(100);
+  }
+  delay(1000);
+  for (int i = 0; i <= 30; i++) {
+    servo.write(i);
+    delay(100);
+  }
+}
+
 
 // Libs
 class WebSocket {
@@ -331,18 +343,20 @@ void setup() {
   Serial.begin(9600);
   lcd.begin(16, 2);
   lcd.noBlink();
-  lcd.createChar(0, smiley_eye);
+  /*lcd.createChar(0, smiley_eye);
   lcd.createChar(1, smiley_happy_mouth[0]);
   lcd.createChar(2, smiley_happy_mouth[1]);
   lcd.createChar(3, smiley_sad_mouth[0]);
-  lcd.createChar(4, smiley_sad_mouth[1]);
+  lcd.createChar(4, smiley_sad_mouth[1]);*/
   keypad.setHoldTime(300);
   WebSocket::begin(mac);
-  //servo.attach(SERVOs  bluetooth.begin(9600);
+  //servo.attach(SERVO);
+  //bluetooth.begin(9600);
+  //f/]ixServo();
 }
 
 void loop() {
-  refreshLcd();
+  //refreshLcd();
   char key = keypad.getKey();
   verifyKey(key);
   if (state == 0) {
@@ -383,4 +397,7 @@ void loop() {
   //Serial.println(str.c_str());
   delay(1000);
 	WebSocket::sendPostRequest(url,8080,path , content,  (char *)str.c_str());
+  lcd.set(0,0);
+  lcd.print("IMPRIME ESSA BOSTA");
+  delay(1000);
 }

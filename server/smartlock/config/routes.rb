@@ -15,6 +15,7 @@ Rails.application.routes.draw do
   end
 =end
   post '/auth' => 'authenticate#init'
+  post '/auth/btnew' => 'authenticate#create'
   put '/users/:id/activate' => "users#activate", as: "user_activate"
   put '/users/:id/deactivate' => "users#deactivate", as: "user_deactivate"
 end

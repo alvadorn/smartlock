@@ -26,6 +26,17 @@ class AuthenticateController < ApplicationController
     end
   end
 
+  def create
+    puts params.inspect
+    account = params[:account]
+    password = params[:password]
+    token = params[:token]
+    u = User.find_by(account: account, password: password)
+    if u
+      BluetoothAdapters.create(token: token, user: u, activated: false)
+    end
+  end
+
 
   private
   def unauthorized
