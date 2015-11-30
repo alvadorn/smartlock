@@ -277,17 +277,6 @@ bool verifyBluetooth(String& buffer) {
   return false;
 }
 
-void sendHttpFromBluetooth(String &buffer, void (*encode)(String&, char *, char *, boolean, char *)) {
-  StaticJsonBuffer<400> jsonBuffer;
-  JsonObject& root = jsonBuffer.parseObject(buffer.c_str());
-  const char *account = root["account"];
-  const char *password = root["password"];
-  const char *token  = root["token"];
-  buffer = "";
-  encode(buffer, (char *) account, (char *) password, true, (char *) token);
-}
-
-
 void httpSkipHeader(String &buffer) {
   int index = buffer.indexOf("{");
   if (index != -1) {
@@ -375,6 +364,19 @@ public:
 };
 
 
+void sendHttpFromBluetooth(String &buffer, void (*encode)(String&, char *, char *, boolean, char *)) {
+  StaticJsonBuffer<400> jsonBuffer;
+  JsonObject& root = jsonBuffer.parseObject(buffer.c_str());
+  const char *account = root["account"];
+  const char *password = root["password"];
+  const char *token  = root["token"];
+  buffer = "";
+  encode(buffer, (char *) account, (char *) password, true, (char *) token);
+  WebSocket::sendPostRequest(URL, PORT, "/auth", JSONCONTENT,  (char *) buffer.c_str());
+}
+
+
+
 void setup() {
 	Serial.begin(9600);
 	lcd.begin(16, 2);
@@ -415,8 +417,6 @@ void setup() {
 }
 
 void loop() {
-	//Serial.print("State: ");
-	//Serial.println(state);
 	if(changeLcd) {
 		refreshLcd();
 	}
@@ -439,10 +439,19 @@ void loop() {
     bool received = verifyBluetooth(buffer);
     if (received) {
       sendHttpFromBluetooth(buffer, createJsonToSend);
-      state = 3;
+      WebSocket::receive(received, buffer);
+      state = 5;
+      if (received) {
+        httpSkipHeader(buffer);
+        if (authenticated(buffer)) {
+          state = 4;
+        }
+      }
       lcd_lines[0] = "Autenticando...";
       lcd_lines[1] = "";
       CHANGE_LCD
+      haveDelay = true;
+      time = 2000;
     }
   } else if (state == 3) {
     String data;
