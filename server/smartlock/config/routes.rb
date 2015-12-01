@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
+  root "logs#index"
   resources :logs, only: [:index, :show]
-  resources :users do
-  end
+  resources :users
   resources :bluetooth_adapters
 =begin
   namespace :users do

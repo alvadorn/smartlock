@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title><%= content_for?(:title) ? yield(:title) : "foundation-rails" %></title>
+    <title><%= content_for?(:title) ? yield(:title) : "Smartlocker App" %></title>
 
     <%= stylesheet_link_tag    "application" %>
     <%= javascript_include_tag "vendor/modernizr" %>
@@ -13,8 +13,28 @@
   </head>
 
   <body>
+    <nav class="top-bar" data-topbar role="navigation">
+      <ul class="title-area">
+        <li class="name">
+          <h1><a href="#">SmartLocker Controller</a></h1>
+        </li>
+         <!-- Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone -->
+        <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
+      </ul>
+
+      <section class="top-bar-section">
+
+        <!-- Left Nav Section -->
+        <ul class="left">
+          <li><%= link_to 'Users', users_path %></li>
+          <li><%= link_to 'Bluetooth Adapters', bluetooth_adapters_path %></li>
+          <li><%= link_to 'Logs', logs_path %></li>
+        </ul>
+      </section>
+    </nav>
 
     <%= yield %>
+  
 
   </body>
 </html>

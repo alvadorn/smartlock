@@ -12,20 +12,29 @@ class AuthenticateController < ApplicationController
       query = User.joins(:bluetooth_adapter).where( bluetooth_adapters: {
         token: token, activated: true }, account: account, password: pass_hash, activated: true)
       if query.any?
-        puts "achei essa porra"
         authorized query[0].name
+        create_log account: account, password: pass_hash, token: token,
+          bluetooth: true, status: true
         #else
         #  unauthorized
         #end
       else
         unauthorized
+        create_log account: account, password: pass_hash, token: token, status: false, bluetooth: true
       end
     else
       user = User.find_by(account: account, password: pass_hash)
-      if user.activated
-        authorized user.name
+      if user
+        if user.activated
+          authorized user.name
+          create_log account: account, password: pass_hash, token: token, bluetooth: false, status: true
+        else
+          unauthorized
+          create_log account: account, password: pass_hash, token: token, bluetooth: false, status: false
+        end
       else
         unauthorized
+        create_log account: account, password: pass_hash, token: token, bluetooth: false, status: false
       end
     end
   end
@@ -58,6 +67,11 @@ class AuthenticateController < ApplicationController
   def authorized(name)
   	render json:  { authentication: "authorized", name: name }
     #{}"{ \"authentication\": \"authorized\", \"name\": #{name} }"
+  end
+
+  def create_log(log_params)
+    log = Log.new(log_params)
+    log.save
   end
 
   def success

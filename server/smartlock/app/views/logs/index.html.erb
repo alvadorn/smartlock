@@ -5,18 +5,29 @@
 <table>
   <thead>
     <tr>
-      <th>Dia</th>
-      <th>Hora</th>
+      <th>Time</th>
+      <th>Account</th>
+      <th>Bluetooth</th>
+      <th>Token</th>
+      <th>Authorized</th>
     </tr>
   </thead>
 
   <tbody>
     <% @logs.each do |log| %>
       <tr>
-        <td><%= log.bluetooth %></td>
-        <td><%= log.status %></td>
+        <td><%= log.created_at %></td>
+        <td><%= log.account %></td>
+        <td class="icon"><%= select_icon(log.bluetooth, true).html_safe %></td>
+        <td>
+          <% unless log.token.nil? %>
+            <%= log.token[0.. 10] %>
+          <% else %>
+            <%= "" %>
+          <% end %>
+        </td>
+        <td class="icon"><%= select_icon(log.status).html_safe %></td>
         <td><%= link_to 'Show', log %></td>
-        <td><%= link_to 'Edit', edit_log_path(log) %></td>
       </tr>
     <% end %>
   </tbody>

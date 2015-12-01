@@ -7,6 +7,7 @@
     <tr>
       <th>Token</th>
       <th>Belongs to</th>
+      <th>Situation</th>
       <th colspan="5"></th>
     </tr>
   </thead>
@@ -18,6 +19,7 @@
         <td>
             <%= bluetooth_adapter.user.name %>
         </td>
+        <td class="icon"><%= select_icon(bluetooth_adapter.activated).html_safe %></td>
         <td><%= link_to 'Show', bluetooth_adapter %></td>
         <td><%= link_to 'Edit', edit_bluetooth_adapter_path(bluetooth_adapter) %></td>
         <td><%= link_to 'Delete', bluetooth_adapter, method: :delete, data: { confirm: 'Are you sure?' } %></td>

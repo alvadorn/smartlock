@@ -48,6 +48,8 @@ const byte colPins[] = { 38, 36, 34, 32 };
 char content[] = "application/json";
 String name = "";
 IPAddress ip(10, 10, 10, 50);
+String bluetoothBuffer = "";
+bool endBT = false;
 
 /*
  *  Initializing LCD
@@ -267,15 +269,18 @@ void verifyKey(char key) {
   }
 }
 
-bool verifyBluetooth(String& buffer) {
+/*bool verifyBluetooth(String& buffer) {
   if (bluetooth.available()) {
+    Serial.print("Open: ");
     while(bluetooth.available()) {
-      buffer += bluetooth.read();
+      buffer += (char )bluetooth.read();
     }
+    Serial.print(buffer);
+    Serial.print("\n");
     return true;
   }
   return false;
-}
+}*/
 
 void httpSkipHeader(String &buffer) {
   int index = buffer.indexOf("{");
@@ -302,8 +307,21 @@ bool authenticated(String &buffer) {
   } else {
     return false;
   }
+  return false;
 }
 
+bool created(String &buffer) {
+  httpSkipHeader(buffer);
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& root = jsonBuffer.parseObject(buffer.c_str());
+  const char *status = root["create"];
+  if (strcmp(status, "success") == 0) {
+    return true;
+  } else {
+    return false;
+  }
+  return false;
+}
 
 void createJsonToSend(String& str, char *account, char *password, boolean bluetooth, char *token) {
   StaticJsonBuffer<400> jsonBuffer;
@@ -424,7 +442,7 @@ void loop() {
 		delay(time);
 		haveDelay = false;
 	}
-  if (lastState == 5) {
+  if (lastState == 5 || lastState == 10) {
     cancelKey();
     lastState = -1;
   } else if (lastState == 7) {
@@ -432,28 +450,40 @@ void loop() {
     lastState = -1;
     cancelKey();
   }
+  if (bluetooth.available()) {
+    char c = bluetooth.read();
+    bluetoothBuffer += c;
+    if (c == '}') endBT = true;
+  }
 	char key = keypad.getKey();
   verifyKey(key);
-  if (state == 0) {
+
+  /*if (state == 0) {
     String buffer = "";
-    bool received = verifyBluetooth(buffer);
+    bool received = verifyBluetooth(buffer);*/
+  if (endBT && state == 0) {
+    Serial.println(bluetoothBuffer);
+    bool received = false;
+    sendHttpFromBluetooth(bluetoothBuffer, createJsonToSend);
+    String fromHTTP = "";
+    //bluetoothBuffer = "";
+    WebSocket::receive(received, fromHTTP);
+    state = 5;
     if (received) {
-      sendHttpFromBluetooth(buffer, createJsonToSend);
-      WebSocket::receive(received, buffer);
-      state = 5;
-      if (received) {
-        httpSkipHeader(buffer);
-        if (authenticated(buffer)) {
-          state = 4;
-        }
+       httpSkipHeader(fromHTTP);
+       if (authenticated(fromHTTP)) {
+         state = 4;
       }
-      lcd_lines[0] = "Autenticando...";
-      lcd_lines[1] = "";
-      CHANGE_LCD
-      haveDelay = true;
-      time = 2000;
     }
-  } else if (state == 3) {
+    lcd_lines[0] = "Autenticando...";
+    lcd_lines[1] = "";
+    endBT = false;
+    bluetoothBuffer = "";
+    CHANGE_LCD
+    haveDelay = true;
+    time = 2000;
+  }
+  if (state == 3) {
     String data;
     createJsonToSend(data, (char *) account.c_str(), (char *) password.c_str(), false, "");
     WebSocket::sendPostRequest(URL, PORT, "/auth", JSONCONTENT,  (char *) data.c_str());
@@ -495,7 +525,26 @@ void loop() {
     time = 4000;
     state = 0;
     lastState = 7;
-  } else if (state == 10) {
-    
+  } else if (state == 10 && endBT) {
+    WebSocket::sendPostRequest(URL, PORT, "/auth/btnew", JSONCONTENT,  (char *) bluetoothBuffer.c_str());
+    String resp = "";
+    boolean received = false;
+    WebSocket::receive(received, resp);
+    lcd_lines[0] = "  Falha na insercao";
+    lcd_lines[1] = " do token bluetooth";
+    if (received) {
+      httpSkipHeader(resp);
+      if (created(resp)) {
+        lcd_lines[0] = " Token bluetooth";
+        lcd_lines[1] = "inserido com sucesso";
+      }
+    }
+    haveDelay = true;
+    CHANGE_LCD
+    time = 4000;
+    bluetoothBuffer = "";
+    state = 0;
+    endBT = false;
+    lastState = 10;
   }
 }
