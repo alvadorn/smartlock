@@ -1,5 +1,5 @@
 class BluetoothAdaptersController < ApplicationController
-  before_action :set_bluetooth_adapter, only: [:show, :edit, :update, :destroy]
+  before_action :set_bluetooth_adapter, only: [:show, :edit, :update, :destroy, :activate, :deactivate]
 
   # GET /bluetooth_adapters
   # GET /bluetooth_adapters.json
@@ -15,6 +15,7 @@ class BluetoothAdaptersController < ApplicationController
   # GET /bluetooth_adapters/new
   def new
     @bluetooth_adapter = BluetoothAdapter.new
+    @users = User.all
   end
 
   # GET /bluetooth_adapters/1/edit
@@ -61,6 +62,27 @@ class BluetoothAdaptersController < ApplicationController
     end
   end
 
+  # PUT  /bluuetooth/1/deactivate
+  def deactivate
+    respond_to do |format|
+      if @bluetooth_adapter.update(activated: false)
+        format.html { redirect_to bluetooth_adapters_url, notice: 'Adaptador desativado com sucesso.' }
+      else
+        format.html { reditect_to bluetooth_adapters_url, notice: 'Adaptador não pode ser desativado' }
+      end
+    end
+  end
+
+  def activate
+    respond_to do |format|
+      if @bluetooth_adapter.update(activated: true)
+        format.html { redirect_to bluetooth_adapters_url, notice: 'Adaptador ativado com sucesso.' }
+      else
+        format.html { reditect_to bluetooth_adapters_url, notice: 'Adaptador não pode ser ativado.' }
+      end
+    end
+  end
+
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_bluetooth_adapter
@@ -69,6 +91,6 @@ class BluetoothAdaptersController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def bluetooth_adapter_params
-      params.require(:bluetooth_adapter).permit(:token)
+      params.require(:bluetooth_adapter).permit(:token, :user_id)
     end
 end

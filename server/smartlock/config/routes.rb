@@ -18,4 +18,6 @@ Rails.application.routes.draw do
   post '/auth/btnew' => 'authenticate#create'
   put '/users/:id/activate' => "users#activate", as: "user_activate"
   put '/users/:id/deactivate' => "users#deactivate", as: "user_deactivate"
+  put '/bluetooth_adapters/:id/activate' => "bluetooth_adapters#activate", as: "bluetooth_activate"
+  put '/bluetooth_adapters/:id/deactivate' => "bluetooth_adapters#deactivate", as: "bluetooth_deactivate"
 end

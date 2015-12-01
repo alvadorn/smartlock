@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151104142924) do
+ActiveRecord::Schema.define(version: 20151201103645) do
 
   create_table "bluetooth_adapters", force: :cascade do |t|
     t.boolean  "activated",  default: true, null: false
@@ -21,6 +21,7 @@ ActiveRecord::Schema.define(version: 20151104142924) do
     t.datetime "updated_at",                null: false
   end
 
+  add_index "bluetooth_adapters", ["token"], name: "index_bluetooth_adapters_on_token", unique: true
   add_index "bluetooth_adapters", ["user_id"], name: "index_bluetooth_adapters_on_user_id"
 
   create_table "logs", force: :cascade do |t|
