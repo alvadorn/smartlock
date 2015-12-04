@@ -3,6 +3,7 @@ class UsersController < ApplicationController
   # GET /users
   # GET /users.json
   def index
+    puts params.inspect
     @users = User.all
   end
 
