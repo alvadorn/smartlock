@@ -9,6 +9,73 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_pairing_screen" tools:context=".PairingScreen">
 
-    <TextView android:text="Hello World!" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Turn On"
+        android:id="@+id/button2"
+        android:clickable="true"
+        android:onClick="turnOn"
+        android:layout_alignParentTop="true"
+        android:layout_alignLeft="@+id/button6"
+        android:layout_alignStart="@+id/button6" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Get visible"
+        android:onClick="turnVisible"
+        android:id="@+id/button4"
+        android:layout_below="@+id/button3"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Connect Arduino"
+        android:onClick="pairDevice"
+        android:id="@+id/button"
+        android:layout_below="@+id/button4"
+        android:layout_alignLeft="@+id/button5"
+        android:layout_alignStart="@+id/button5"
+        android:layout_marginTop="61dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="turn off"
+        android:onClick="turnOff"
+        android:id="@+id/button3"
+        android:layout_alignTop="@+id/button2"
+        android:layout_alignRight="@+id/button6"
+        android:layout_alignEnd="@+id/button6" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Input credentials"
+        android:id="@+id/button5"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="INSTANT AUTHENTICATION"
+        android:onClick="instantAuth"
+        android:id="@+id/button6"
+        android:layout_below="@+id/button5"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView"
+        android:layout_below="@+id/button6"
+        android:layout_marginTop="45dp"
+        android:layout_alignRight="@+id/button6"
+        android:layout_alignEnd="@+id/button6"
+        android:layout_alignLeft="@+id/button6"
+        android:layout_alignStart="@+id/button6" />
+
 </RelativeLayout>
