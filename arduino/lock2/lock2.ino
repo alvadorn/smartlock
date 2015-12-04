@@ -269,18 +269,6 @@ void verifyKey(char key) {
   }
 }
 
-/*bool verifyBluetooth(String& buffer) {
-  if (bluetooth.available()) {
-    Serial.print("Open: ");
-    while(bluetooth.available()) {
-      buffer += (char )bluetooth.read();
-    }
-    Serial.print(buffer);
-    Serial.print("\n");
-    return true;
-  }
-  return false;
-}*/
 
 void httpSkipHeader(String &buffer) {
   int index = buffer.indexOf("{");
@@ -458,9 +446,6 @@ void loop() {
 	char key = keypad.getKey();
   verifyKey(key);
 
-  /*if (state == 0) {
-    String buffer = "";
-    bool received = verifyBluetooth(buffer);*/
   if (endBT && state == 0) {
     Serial.println(bluetoothBuffer);
     bool received = false;
